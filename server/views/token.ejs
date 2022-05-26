@@ -1,0 +1,15 @@
+<% layout('_layout') -%>
+<div class="container">
+	<h1>BHere SSO Consumer</h1>
+</div>
+<script>
+var status = '<%= status %>';
+window.onunload = function() {
+	var opener = window.opener;
+	if (opener && !opener.closed) {
+		opener.onSSOPopupClose(status);
+	}
+};
+window.close();
+
+</script>
