@@ -61,7 +61,15 @@ function sendOk(response, data) {
 }
 
 function findOne_(request, response, params, query, items) {
-  let item = items.find(x => x.id === params.id);
+  let item = null;
+  // console.log(request.url, query.where, params.id);
+  if (query && query.where) {
+    const where = JSON.parse(query.where);
+    item = items.find(x => Object.entries(where).reduce((p, [k, v]) => p && x[k] === v, true));
+  } else {
+    item = items.find(x => x.id === params.id);
+  }
+  // console.log(query, item);
   if (!item) {
     sendError(response, 404, 'Not Found');
   }
@@ -202,7 +210,7 @@ function getApiRoutes(db) {
     const collectionRoutes = [
       {
         path: `/api/${name}/:id`, method: 'GET', callback: async function(request, response, params) {
-          console.log('GET', request.url);
+          // console.log('GET', request.url);
           const item = findOne_(request, response, params, request.query, items_);
           if (item) {
             sendOk(response, item);
@@ -210,23 +218,23 @@ function getApiRoutes(db) {
         }
       }, {
         path: `/api/${name}`, method: 'GET', callback: async function(request, response, params) {
-          console.log('GET', request.url);
+          // console.log('GET', request.url);
           const items = findMany_(request, response, params, request.query, items_);
           sendOk(response, items);
         }
       }, {
         path: `/api/${name}`, method: 'POST', callback: async function(request, response, params) {
-          console.log('POST', request.url);
+          // console.log('POST', request.url);
           await create_(request, response, params, request.query, items_);
         }
       }, {
         path: `/api/${name}/:id`, method: 'PUT', callback: async function(request, response, params) {
-          console.log('PUT', request.url);
+          // console.log('PUT', request.url);
           await update_(request, response, params, request.query, items_);
         }
       }, {
         path: `/api/${name}/:id`, method: 'DELETE', callback: async function(request, response, params) {
-          console.log('DELETE', request.url);
+          // console.log('DELETE', request.url);
           await delete_(request, response, params, request.query, items_);
         }
       },
@@ -273,7 +281,7 @@ async function apiMiddleware(options) {
       }
     });
     if (method) {
-      console.log('apiMiddleware.url', url, method.path, method.method, params);
+      console.log(method.method, method.path, params, request.query);
       method.callback(request, response, params);
     } else {
       next();
